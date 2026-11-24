@@ -1146,7 +1146,7 @@ h2.dec{font-size:52px;line-height:1.1;color:var(--ink);margin-bottom:28px}
       <h2 class="dec">One pattern for every component.</h2>
       <div class="focus"></div>
     </div>
-    <div class="shot" data-img="img/omen-toolbar.jpg" data-focus='[["Click the component","No power users.",0.325,0.148,0.378,0.052],["The panel shows only that","Learn one, know them all.",0.831,0.109,0.158,0.325]]'></div>
+    <div class="shot" data-img="img/omen-toolbar.jpg" data-focus='[["Click the component","No power users.",0.325,0.148,0.378,0.052],["The panel shows only that","Learn one, know them all.",0.831,0.109,0.158,0.325],["Click the mission card","The exact same pattern.",0.079,0.198,0.169,0.136,"img/omen-component-focus.jpg"],["Its panel","Configured, and available to add.",0.829,0.098,0.162,0.388,"img/omen-component-focus.jpg"]]'></div>
   </div>
 </section>
 
@@ -1314,9 +1314,10 @@ slides.forEach((sl,si)=>{
     const pins=f.map((p,j)=>{const b=document.createElement('button');b.className='pin';b.textContent=j+1;b.setAttribute('aria-label','Focus '+(j+1)+': '+p[0]);b.onclick=e=>{e.stopPropagation();setFocus(si,j)};zl.appendChild(b);return b});
     const list=sl.querySelector('.focus');
     const items=f.map((p,j)=>{const b=document.createElement('button');b.className='fx';b.innerHTML='<b>'+(j+1)+'</b><span class="t"></span><span class="d"></span>';b.querySelector('.t').textContent=p[0];b.querySelector('.d').textContent=p[1];b.onclick=()=>setFocus(si,j);if(list)list.appendChild(b);return b});
-    const s={el,zl,hl,img,f,pins,items,slide:si,after:+(el.dataset.after||0),cur:-1,box:null};
+    const s={el,zl,hl,img,f,pins,items,base:el.dataset.img,slide:si,after:+(el.dataset.after||0),cur:-1,box:null};
     el.querySelector('.fit').onclick=e=>{e.stopPropagation();s.cur=-1;applyShot(s,true);syncSteps()};
-    img.onload=()=>layoutShot(s); if(img.complete&&img.naturalWidth) layoutShot(s);
+    img.onload=()=>{ if(!s.box) layoutShot(s); }; if(img.complete&&img.naturalWidth) layoutShot(s);
+    f.forEach(p=>{ if(p[6]) new Image().src=p[6]; });
     shots.push(s);
   });
 });
@@ -1351,6 +1352,10 @@ function applyShot(s,anim){
     t='translate('+tx+'px,'+ty+'px) scale('+sc+')';
     Object.assign(s.hl.style,{left:rx+'px',top:ry+'px',width:rw+'px',height:rh+'px',borderWidth:(2/sc)+'px'});
   }
+  // a focus point may name its own screenshot (7th value); show it and only its pins
+  const src=(s.cur>=0&&s.f[s.cur][6])||s.base;
+  if(s.img.getAttribute('src')!==src) s.img.setAttribute('src',src);
+  s.pins.forEach((b,j)=>{ b.style.display=((s.f[j][6]||s.base)===src)?'':'none'; });
   s.zl.style.transform=t; s.el.classList.toggle('focusing',s.cur>=0);
   const fc=s.el.querySelector('.fcap'); if(fc){ if(s.cur>=0){ fc.textContent=(s.cur+1)+' · '+s.f[s.cur][0]; fc.hidden=false; } else fc.hidden=true; }
   s.pins.forEach((b,j)=>{b.classList.toggle('on',j===s.cur);b.style.transform='scale('+(1/sc)+')'});
